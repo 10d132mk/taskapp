@@ -18,6 +18,7 @@ class InputViewController: UIViewController {
     @IBOutlet weak var searchsuru: UITextField!
     
     
+    
     let realm = try! Realm()
     var task: Task!
     
@@ -32,6 +33,8 @@ class InputViewController: UIViewController {
         contentsTextView.text = task.contents
         datePicker.date = task.date
         searchsuru.text = task.category
+        
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -46,6 +49,7 @@ class InputViewController: UIViewController {
         setNotification(task: task)
         super.viewWillDisappear(animated)
     }
+    
     // タスクのローカル通知を登録する --- ここから ---
     func setNotification(task: Task) {
         let content = UNMutableNotificationContent()

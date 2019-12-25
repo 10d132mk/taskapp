@@ -18,37 +18,38 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var searchBar: UISearchBar!
     
     
+    
     /// Realmインスタンスを取得する
-    let realm = try! Realm()  // ←追加
+    let realm = try! Realm()
+    var searchText = ""
     
     // DB内のタスクが格納されるリスト。
     // 日付近い順\順でソート：降順
     // 以降内容をアップデートするとリスト内は自動的に更新される。
     var taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
-    
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
         //サーチバーのデリゲートメソッド使えるようにする
         searchBar.delegate = self
         searchBar.showsSearchResultsButton = true
-        
         tableView.delegate = self
         tableView.dataSource = self
-    
-        }
+        
+        
+    }
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tableView.reloadData()
-        searchBar.resignFirstResponder()
+        
     }
-
+    
     
     // MARK: UITableViewDataSourceプロトコルのメソッド
     // データの数（＝セルの数）を返すメソッド
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return taskArray.count  // ←修正する
+        return taskArray.count
     }
     
     // 各セルの内容を返すメソッド
@@ -56,7 +57,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // 再利用可能な cell を得る
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        // Cellに値を設定する.  --- ここから ---
+        // Cellに値を設定する
         let task = taskArray[indexPath.row]
         cell.textLabel?.text = task.title
         
@@ -65,8 +66,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         let dateString:String = formatter.string(from: task.date)
         cell.detailTextLabel?.text = dateString
-        // --- ここまで追加 ---
-        
         return cell
     }
     
@@ -83,9 +82,11 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return .delete
     }
     
+    
+    
+    
     // Delete ボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        // --- ここから ---
         if editingStyle == .delete {
             // 削除するタスクを取得する
             let task = self.taskArray[indexPath.row]
@@ -108,17 +109,38 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     print("---------------/")
                 }
             }
-        } // --- ここまで変更 ---
+        }
     }
     
-    // キャンセルボタンが押されたとき
+    // 検索してるとき
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        taskArray = realm.objects(Task.self).filter("category == %@", searchBar.text!)
-        tableView.reloadData()
-        navigationItem.titleView = searchBar
-        
+
         searchBar.showsCancelButton = false
         searchBar.resignFirstResponder()
+        self.searchText = searchBar.text ?? ""   //検索された文字列を自身の変数に入れる
+        
+        if self.searchText == "" {
+            
+            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+        }
+        else {
+ 
+            taskArray = realm.objects(Task.self).filter("category == %@", searchBar.text!)
+        }
+        tableView.reloadData()
+    }
+    
+    
+    //キャンセルボタンが押されたとき
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+
+        searchBar.showsCancelButton = false
+        taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+        tableView.reloadData()
+        if searchText == "" {
+            taskArray = try! Realm().objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+            tableView.reloadData()
+        }
 
     }
     
@@ -126,6 +148,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     func searchBarShouldBeginEditing(_ searchBar: UISearchBar) -> Bool {
         searchBar.showsCancelButton = true
         return true
+        
     }
     
     
@@ -149,3 +172,4 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
     }
 }
+
